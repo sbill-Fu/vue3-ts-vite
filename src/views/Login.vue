@@ -1,33 +1,4 @@
-<template>
-  <div class="login-wrapper">
-    <div class="modal">
-      <el-form ref="userFormRef" :model="user" status-icon :rules="rules">
-        <div class="title">火星</div>
-        <el-form-item prop="userName">
-          <el-input
-            type="text"
-            prefix-icon="el-icon-user"
-            v-model="user.userName"
-          />
-        </el-form-item>
-        <el-form-item prop="userPwd">
-          <el-input
-            type="password"
-            prefix-icon="el-icon-view"
-            v-model="user.userPwd"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" class="btn-login" @click="login(userFormRef)"
-            >登录</el-button
-          >
-        </el-form-item>
-      </el-form>
-    </div>
-  </div>
-</template>
-
-<script setup>
+<script lang="ts" setup>
 import { reactive, ref } from '@vue/reactivity';
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
@@ -70,7 +41,37 @@ function login(formRef) {
 function goHome() {
   router.push("/welcome");
 }
+
 </script>
+
+<template>
+  <div class="login-wrapper">
+    <div class="modal">
+      <el-form ref="userFormRef" :model="user" status-icon :rules="rules">
+        <div class="title">火星</div>
+        <el-form-item prop="userName">
+          <el-input
+            type="text"
+            prefix-icon="el-icon-user"
+            v-model="user.userName"
+          />
+        </el-form-item>
+        <el-form-item prop="userPwd">
+          <el-input
+            type="password"
+            prefix-icon="el-icon-view"
+            v-model="user.userPwd"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" class="btn-login" @click="login(userFormRef)"
+            >登录</el-button
+          >
+        </el-form-item>
+      </el-form>
+    </div>
+  </div>
+</template>
 
 <style lang="scss">
 .login-wrapper {

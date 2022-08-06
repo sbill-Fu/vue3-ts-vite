@@ -4,7 +4,7 @@
 import axios from 'axios'
 import config from './../config'
 import { ElMessage } from 'element-plus'
-import router from './../router'
+import router from '../router'
 import storage from './storage'
 
 const TOKEN_INVALID = 'Token认证失败，请重新登录'

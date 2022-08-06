@@ -1,8 +1,8 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Home from '@/components/Home.vue'
-import storage from './../utils/storage'
-import API from './../api'
-import utils from './../utils/utils'
+import storage from '../utils/storage'
+import API from '../api'
+import utils from '../utils/utils'
 
 const routes = [
     {
