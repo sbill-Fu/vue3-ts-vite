@@ -1,3 +1,60 @@
+<script lang="ts" setup>
+  import TreeMenu from "./TreeMenu.vue"
+  import BreadCrumb from "./BreadCrumb.vue"
+  import { computed, onMounted, ref } from 'vue'
+  import { useStore } from 'vuex'
+  import { useRouter } from 'vue-router';
+  import api from '@/api'
+
+  const store = useStore()
+  const router = useRouter()
+
+  const activeMenu =  ref(location.hash.slice(1))
+
+  const noticeCount = computed(() => {
+    return store.state.noticeCount
+  })
+
+  onMounted(() => {
+    getNoticeCount()
+    getMenuList()
+  })
+
+  const isCollapse = ref(false)
+  const toggle = () => {
+    isCollapse.value = !isCollapse.value
+  }
+
+  let userInfo = ref(store.state.userInfo)
+  const handleLogout = (key: string) => {
+    if (key === "email") return;
+    store.commit("saveUserInfo", "");
+    userInfo.value = {};
+    router.push("/login");
+  }
+
+  const getNoticeCount = async() => {
+    try {
+      const count = await api.noticeCount();
+      store.commit("saveNoticeCount", count);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const userMenu = ref([])
+  const getMenuList = async() => {
+    try {
+      const { menuList, actionList } = await api.getPermissionList();
+      store.commit("saveMenuList", menuList);
+      store.commit("saveActionList", actionList);
+      userMenu.value = menuList
+    } catch (error) {
+      console.error(error);
+    }
+  }
+</script>
+
 <template>
   <div class="basic-layout">
     <div :class="['nav-side', isCollapse ? 'fold' : 'unfold']">
@@ -15,14 +72,14 @@
         :collapse="isCollapse"
         class="nav-menu"
       >
-        <tree-menu :userMenu="userMenu" />
+        <TreeMenu :userMenu="userMenu" />
       </el-menu>
     </div>
     <div :class="['content-right', isCollapse ? 'fold' : 'unfold']">
       <div class="nav-top">
         <div class="nav-left">
           <div class="menu-fold" @click="toggle">
-            <i class="el-icon-s-fold"></i>
+            <el-icon><Fold /></el-icon>
           </div>
           <div class="bread">
             <BreadCrumb />
@@ -59,62 +116,6 @@
     </div>
   </div>
 </template>
-
-<script>
-import TreeMenu from "./TreeMenu.vue";
-import BreadCrumb from "./BreadCrumb.vue";
-export default {
-  name: "Home",
-  components: { TreeMenu, BreadCrumb },
-  data() {
-    return {
-      isCollapse: false,
-      userInfo: this.$store.state.userInfo,
-      noticeCount: 0,
-      userMenu: [],
-      activeMenu: location.hash.slice(1),
-    };
-  },
-  computed: {
-    noticeCount() {
-      return this.$store.state.noticeCount;
-    },
-  },
-  mounted() {
-    this.getNoticeCount();
-    this.getMenuList();
-  },
-  methods: {
-    toggle() {
-      this.isCollapse = !this.isCollapse;
-    },
-    handleLogout(key) {
-      if (key == "email") return;
-      this.$store.commit("saveUserInfo", "");
-      this.userInfo = {};
-      this.$router.push("/login");
-    },
-    async getNoticeCount() {
-      try {
-        const count = await this.$api.noticeCount();
-        this.$store.commit("saveNoticeCount", count);
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    async getMenuList() {
-      try {
-        const { menuList, actionList } = await this.$api.getPermissionList();
-        this.$store.commit("saveMenuList", menuList);
-        this.$store.commit("saveActionList", actionList);
-        this.userMenu = menuList;
-      } catch (error) {
-        console.error(error);
-      }
-    },
-  },
-};
-</script>
 
 <style lang="scss">
 .basic-layout {
@@ -172,11 +173,14 @@ export default {
         display: flex;
         align-items: center;
         .menu-fold {
+          cursor: pointer;
           margin-right: 15px;
           font-size: 18px;
         }
       }
       .user-info {
+        display: flex;
+        align-items: center;
         .notice {
           line-height: 30px;
           margin-right: 15px;

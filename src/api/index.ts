@@ -13,7 +13,7 @@ export default {
             data: params,
         })
     },
-    noticeCount(params: Params) {
+    noticeCount(params?: Params) {
         return request({
             url: '/leave/count',
             method: 'get',
@@ -27,7 +27,7 @@ export default {
             data: params
         })
     },
-    getPermissionList() {
+    getPermissionList(): any {
         return request({
             url: '/users/getPermissionList',
             method: 'get',
