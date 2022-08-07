@@ -3,17 +3,17 @@ import { reactive, ref } from '@vue/reactivity';
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import api from '@/api'
-import { FormInstance } from 'element-plus';
+import { FormInstance, FormRules } from 'element-plus';
 let user = reactive({
   userName: "admin",
   userPwd: "123456",
 })
-let rules = {
+let rules: FormRules = {
   userName: [
     {
       required: true,
       message: "请输入用户名",
-      trigger: "blur",
+      trigger: "blur"
     },
   ],
   userPwd: [
@@ -24,10 +24,11 @@ let rules = {
     },
   ],
 }
-const userFormRef = ref()
+const userFormRef = ref<FormInstance | undefined>()
 const store = useStore();
 const router = useRouter();
-function login(formRef: FormInstance) {
+function login(formRef: FormInstance | undefined) {
+  if (!formRef) return
   formRef.validate((valid) => {
     if (valid) {
       api.login(user).then(async (res) => {
