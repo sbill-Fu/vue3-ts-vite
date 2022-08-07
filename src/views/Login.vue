@@ -3,6 +3,7 @@ import { reactive, ref } from '@vue/reactivity';
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import api from '@/api'
+import { FormInstance } from 'element-plus';
 let user = reactive({
   userName: "admin",
   userPwd: "123456",
@@ -26,7 +27,7 @@ let rules = {
 const userFormRef = ref()
 const store = useStore();
 const router = useRouter();
-function login(formRef) {
+function login(formRef: FormInstance) {
   formRef.validate((valid) => {
     if (valid) {
       api.login(user).then(async (res) => {

@@ -1,23 +1,26 @@
 /**
  * api管理
  */
-import request from './../utils/request'
+export interface Params {
+    [key: string]: string;
+}
+import request from '../utils/request'
 export default {
-    login(params) {
+    login(params: Params) {
         return request({
             url: '/users/login',
             method: 'post',
             data: params,
         })
     },
-    noticeCount(params) {
+    noticeCount(params: Params) {
         return request({
             url: '/leave/count',
             method: 'get',
             data: {}
         })
     },
-    getMenuList(params) {
+    getMenuList(params: Params) {
         return request({
             url: '/menu/list',
             method: 'get',
@@ -31,7 +34,7 @@ export default {
             data: {}
         })
     },
-    getUserList(params) {
+    getUserList(params: Params) {
         return request({
             url: '/users/list',
             method: 'get',
@@ -45,7 +48,7 @@ export default {
             data: {}
         })
     },
-    userDel(params) {
+    userDel(params: Params) {
         return request({
             url: '/users/delete',
             method: 'post',
@@ -59,70 +62,70 @@ export default {
             data: {}
         })
     },
-    getRoleList(params) {
+    getRoleList(params: Params) {
         return request({
             url: '/roles/list',
             method: 'get',
             data: params
         })
     },
-    getDeptList(params) {
+    getDeptList(params: Params) {
         return request({
             url: '/dept/list',
             method: 'get',
             data: params
         })
     },
-    deptOperate(params) {
+    deptOperate(params: Params) {
         return request({
             url: '/dept/operate',
             method: 'post',
             data: params
         })
     },
-    userSubmit(params) {
+    userSubmit(params: Params) {
         return request({
             url: '/users/operate',
             method: 'post',
             data: params
         })
     },
-    menuSubmit(params) {
+    menuSubmit(params: Params) {
         return request({
             url: '/menu/operate',
             method: 'post',
             data: params
         })
     },
-    roleOperate(params) {
+    roleOperate(params: Params) {
         return request({
             url: '/roles/operate',
             method: 'post',
             data: params
         })
     },
-    updatePermission(params) {
+    updatePermission(params: Params) {
         return request({
             url: '/roles/update/permission',
             method: 'post',
             data: params
         })
     },
-    getApplyList(params) {
+    getApplyList(params: Params) {
         return request({
             url: '/leave/list',
             method: 'get',
             data: params
         })
     },
-    leaveOperate(params) {
+    leaveOperate(params: Params) {
         return request({
             url: '/leave/operate',
             method: 'post',
             data: params
         })
     },
-    leaveApprove(params) {
+    leaveApprove(params: Params) {
         return request({
             url: '/leave/approve',
             method: 'post',

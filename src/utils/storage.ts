@@ -2,20 +2,20 @@
  * Storage二次封装
  * @author JackBean
  */
-import config from './../config'
+import config from '../config'
 export default {
-    setItem(key, val) {
+    setItem(key: string, val: string | object) {
         let storage = this.getStroage();
         storage[key] = val;
         window.localStorage.setItem(config.namespace, JSON.stringify(storage));
     },
-    getItem(key) {
+    getItem(key: string) {
         return this.getStroage()[key]
     },
     getStroage() {
         return JSON.parse(window.localStorage.getItem(config.namespace) || "{}");
     },
-    clearItem(key) {
+    clearItem(key: string) {
         let storage = this.getStroage()
         delete storage[key]
         window.localStorage.setItem(config.namespace, JSON.stringify(storage));

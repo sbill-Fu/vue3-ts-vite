@@ -1,11 +1,12 @@
 /**
  * axios二次封装
  */
-import axios from 'axios'
-import config from './../config'
+import axios, { AxiosInstance, AxiosPromise, AxiosRequestConfig, Method } from 'axios'
+import config from '../config'
 import { ElMessage } from 'element-plus'
 import router from '../router'
 import storage from './storage'
+import { Params } from 'api'
 
 const TOKEN_INVALID = 'Token认证失败，请重新登录'
 const NETWORK_ERROR = '网络请求异常，请稍后重试'
@@ -40,11 +41,19 @@ service.interceptors.response.use((res) => {
         return Promise.reject(msg || NETWORK_ERROR)
     }
 })
+interface RequestOptions extends AxiosRequestConfig{
+    mock?: boolean;
+    [key: string]: any;
+}
+interface RequestFunction {
+    (options: RequestOptions): AxiosPromise<any>;
+    [key: string]: any;
+}
 /**
  * 请求核心函数
  * @param {*} options 请求配置
  */
-function request(options) {
+let request: RequestFunction = (options: RequestOptions) => {
     options.method = options.method || 'get'
     if (options.method.toLowerCase() === 'get') {
         options.params = options.data;
@@ -58,16 +67,15 @@ function request(options) {
     } else {
         service.defaults.baseURL = isMock ? config.mockApi : config.baseApi
     }
-
     return service(options)
 }
 
 ['get', 'post', 'put', 'delete', 'patch'].forEach((item) => {
-    request[item] = (url, data, options) => {
+    request[item] = (url: string, data: Params, options: Params) => {
         return request({
             url,
             data,
-            method: item,
+            method: item as Method,
             ...options
         })
     }
