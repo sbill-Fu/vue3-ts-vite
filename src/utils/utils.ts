@@ -1,11 +1,25 @@
+import { Router } from 'vue-router';
+
+
+export interface IMenuList {
+    action: string;
+    component: string;
+    path: string;
+    children?: IMenuList[];
+    menuName: string;
+}
+
+export interface IRoute extends Partial<Router> {
+    [key: string]: any
+}
 /**
  * 工具函数封装
  */
 export default {
-    formateDate(date, rule) {
+    formateDate(date: Date, rule: string) {
         let fmt = rule || 'yyyy-MM-dd hh:mm:ss'
         if (/(y+)/.test(fmt)) {
-            fmt = fmt.replace(RegExp.$1, date.getFullYear())
+            fmt = fmt.replace(RegExp.$1, date.getFullYear().toString())
         }
         const o = {
             // 'y+': date.getFullYear(),
@@ -17,18 +31,18 @@ export default {
         }
         for (let k in o) {
             if (new RegExp(`(${k})`).test(fmt)) {
-                const val = o[k] + '';
+                const val = o[k as keyof typeof o] + '';
                 fmt = fmt.replace(RegExp.$1, RegExp.$1.length == 1 ? val : ('00' + val).substr(val.length));
             }
         }
         return fmt;
     },
-    generateRoute(menuList) {
-        let routes = []
-        const deepList = (list) => {
+    generateRoute(menuList: IMenuList[]) {
+        let routes: IRoute[] = []
+        const deepList = (list: IMenuList[]) => {
             while (list.length) {
                 let item = list.pop()
-                if (item.action) {
+                if (item?.action) {
                     routes.push({
                         name: item.component,
                         path: item.path,
@@ -38,7 +52,7 @@ export default {
                         component: item.component
                     })
                 }
-                if (item.children && !item.action) {
+                if (item?.children && !item.action) {
                     deepList(item.children)
                 }
             }
