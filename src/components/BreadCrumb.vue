@@ -8,13 +8,12 @@
     </el-breadcrumb-item>
   </el-breadcrumb>
 </template>
-<script>
-export default {
-  name: "BreadCrumb",
-  computed: {
-    breadList() {
-      return this.$route.matched;
-    },
-  },
-};
+<script lang="ts" setup>
+import { computed } from '@vue/reactivity';
+import { useRoute } from 'vue-router';
+
+const route = useRoute()
+const breadList = computed(() => {
+  return route.matched
+})
 </script>

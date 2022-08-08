@@ -1,5 +1,5 @@
 <template>
-  <template v-for="menu in userMenu">
+  <template v-for="menu in props.userMenu">
     <el-sub-menu
       v-if="
         menu.children &&
@@ -20,21 +20,23 @@
     <el-menu-item
       v-else-if="menu.menuType == 1"
       :index="menu.path"
-      :key="menu._id"
+      :key="`${menu._id}${menu.menuType}`"
       >{{ menu.menuName }}</el-menu-item
     >
   </template>
 </template>
-<script>
-export default {
-  name: "TreeMenu",
-  props: {
-    userMenu: {
-      type: Array,
-      default() {
-        return [];
-      },
-    },
-  },
-};
+<script lang="ts" setup>
+import { Menu } from '@element-plus/icons-vue';
+
+export interface Menus {
+  children: Menus[];
+  _id: string | number;
+  icon: string;
+  menuName: string;
+  menuType: string | number;
+  path: string;
+}
+const props = defineProps<{
+  userMenu: Menus[]
+}>()
 </script>
