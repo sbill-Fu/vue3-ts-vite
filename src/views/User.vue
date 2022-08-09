@@ -18,7 +18,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleQuery">查询</el-button>
-          <el-button @click="handleReset('form')">重置</el-button>
+          <el-button @click="handleReset(form)">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -49,13 +49,13 @@
           <template #default="scope">
             <el-button
               @click="handleEdit(scope.row)"
-              size="mini"
+              size="small"
               v-has="'user-edit'"
               >编辑</el-button
             >
             <el-button
               type="danger"
-              size="mini"
+              size="small"
               @click="handleDel(scope.row)"
               v-has="'user-delete'"
               >删除</el-button
@@ -69,7 +69,7 @@
         layout="prev, pager, next"
         :total="pager.total"
         :page-size="pager.pageSize"
-        @current-change="handleCurrentChange"
+        v-model:current-page="pager.pageNum"
       />
     </div>
     <el-dialog title="用户新增" v-model="showModal">
@@ -117,7 +117,7 @@
           >
             <el-option
               v-for="role in roleList"
-              :key="role._id"
+              :key="role.id"
               :label="role.roleName"
               :value="role._id"
             ></el-option>
@@ -144,30 +144,66 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { getCurrentInstance, onMounted, reactive, ref, toRaw } from "vue";
+import { nextTick, onMounted, reactive, ref, toRaw, watch } from "vue";
 import utils from "../utils/utils";
-
+import api from '@/api'
+import { FormInstance, ElMessage } from "element-plus";
+interface ISearch {
+  userId: string | number;
+  userName: string;
+  state: number;
+}
+interface IUser {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  mobile: string | number;
+  job: string;
+  roleList: IRole[];
+  state: number;
+  deptId: string;
+  action?: string;
+}
+interface IRole {
+  _id: string | number;
+  id: string | number;
+  roleName: string;
+}
 // 初始化用户表单对象
-const user = reactive({
+const user = reactive<ISearch>({
   state: 1,
+  userId: '',
+  userName: ''
 });
 // 初始化用户列表数据
 const userList = ref([]);
 // 初始化分页对象
-const pager = reactive({
+interface IPager {
+  pageNum: number;
+  pageSize: number;
+  total?: number;
+}
+const pager = reactive<IPager>({
   pageNum: 1,
   pageSize: 10,
 });
 // 选中用户列表对象
-const checkedUserIds = ref([]);
+const checkedUserIds = ref<string[]>([]);
 // 弹框显示对象
 const showModal = ref(false);
 // 新增用户Form对象
-const userForm = reactive({
+const userForm = reactive<IUser>({
   state: 3,
+  userId: '',
+  userName: '',
+  userEmail: '',
+  mobile: '',
+  job: '',
+  roleList: [],
+  deptId: ''
 });
 // 所有角色列表
-const roleList = ref([]);
+const roleList = ref<Array<IRole>>([]);
 // 所有部门列表
 const deptList = ref([]);
 // 定义用户操作行为
@@ -214,7 +250,7 @@ const columns = reactive([
   {
     label: "用户角色",
     prop: "role",
-    formatter(row, column, value) {
+    formatter(row: IUser, column: IUser, value: string | number) {
       return {
         0: "管理员",
         1: "普通用户",
@@ -224,7 +260,7 @@ const columns = reactive([
   {
     label: "用户状态",
     prop: "state",
-    formatter(row, column, value) {
+    formatter(row: IUser, column: IUser, value: string | number) {
       return {
         1: "在职",
         2: "离职",
@@ -236,7 +272,7 @@ const columns = reactive([
     label: "注册时间",
     prop: "createTime",
     width: 180,
-    formatter: (row, column, value) => {
+    formatter: (row: IUser, column: IUser, value: string | number) => {
       return utils.formateDate(new Date(value));
     },
   },
@@ -244,7 +280,7 @@ const columns = reactive([
     label: "最后登录时间",
     prop: "lastLoginTime",
     width: 180,
-    formatter: (row, column, value) => {
+    formatter: (row: IUser, column: IUser, value: string | number) => {
       return utils.formateDate(new Date(value));
     },
   },
@@ -259,7 +295,7 @@ onMounted(() => {
 const getUserList = async () => {
   let params = { ...user, ...pager };
   try {
-    const { list, page } = await proxy.$api.getUserList(params);
+    const { list, page } = await api.getUserList(params);
     userList.value = list;
     pager.total = page.total;
   } catch (error) {}
@@ -269,42 +305,43 @@ const handleQuery = () => {
   getUserList();
 };
 // 重置查询表单
-const handleReset = (form) => {
-  proxy.$refs[form].resetFields();
+const form = ref<FormInstance>()
+const handleReset = (formInstance: FormInstance | undefined) => {
+  formInstance && formInstance.resetFields();
 };
 // 分页事件处理
-const handleCurrentChange = (current) => {
-  pager.pageNum = current;
-  getUserList();
-};
+watch(() => pager.pageNum, () => {
+  console.log('watch: ')
+  getUserList()
+})
 // 用户单个删除
-const handleDel = async (row) => {
-  await proxy.$api.userDel({
+const handleDel = async (row: IUser) => {
+  await api.userDel({
     userIds: [row.userId], //可单个删除，也可批量删除
   });
-  proxy.$message.success("删除成功");
+  ElMessage.success("删除成功");
   getUserList();
 };
 // 批量删除
 const handlePatchDel = async () => {
   if (checkedUserIds.value.length == 0) {
-    proxy.$message.error("请选择要删除的用户");
+    ElMessage.error("请选择要删除的用户");
     return;
   }
-  const res = await proxy.$api.userDel({
+  const res = await api.userDel({
     userIds: checkedUserIds.value, //可单个删除，也可批量删除
   });
   if (res.nModified > 0) {
-    proxy.$message.success("删除成功");
+    ElMessage.success("删除成功");
     getUserList();
   } else {
-    proxy.$message.success("修改失败");
+    ElMessage.success("修改失败");
   }
 };
 
 // 表格多选
-const handleSelectionChange = (list) => {
-  let arr = [];
+const handleSelectionChange = (list: IUser[]) => {
+  let arr: string[] = [];
   list.map((item) => {
     arr.push(item.userId);
   });
@@ -317,40 +354,41 @@ const handleCreate = () => {
 };
 
 const getDeptList = async () => {
-  let list = await proxy.$api.getDeptList();
+  let list = await api.getDeptList();
   deptList.value = list;
 };
 
 // 角色列表查询
 const getRoleAllList = async () => {
-  let list = await proxy.$api.getRoleAllList();
+  let list = await api.getRoleAllList();
   roleList.value = list;
 };
+const dialogForm = ref<FormInstance>()
 // 用户弹窗关闭
 const handleClose = () => {
   showModal.value = false;
-  handleReset("dialogForm");
+  handleReset(dialogForm.value);
 };
 // 用户提交
 const handleSubmit = () => {
-  proxy.$refs.dialogForm.validate(async (valid) => {
+  dialogForm.value?.validate(async (valid) => {
     if (valid) {
       let params = toRaw(userForm);
       params.userEmail += "@imooc.com";
       params.action = action.value;
-      let res = await proxy.$api.userSubmit(params);
+      let res = await api.userSubmit(params);
       showModal.value = false;
-      proxy.$message.success("用户创建成功");
-      handleReset("dialogForm");
+      ElMessage.success("用户创建成功");
+      handleReset(dialogForm.value);
       getUserList();
     }
   });
 };
 // 用户编辑
-const handleEdit = (row) => {
+const handleEdit = (row: IUser) => {
   action.value = "edit";
   showModal.value = true;
-  proxy.$nextTick(() => {
+  nextTick(() => {
     Object.assign(userForm, row);
   });
 };

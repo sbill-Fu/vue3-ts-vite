@@ -16,7 +16,7 @@ export interface IRoute extends Partial<Router> {
  * 工具函数封装
  */
 export default {
-    formateDate(date: Date, rule: string) {
+    formateDate(date: Date, rule?: string) {
         let fmt = rule || 'yyyy-MM-dd hh:mm:ss'
         if (/(y+)/.test(fmt)) {
             fmt = fmt.replace(RegExp.$1, date.getFullYear().toString())

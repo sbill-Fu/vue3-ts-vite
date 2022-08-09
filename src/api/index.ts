@@ -2,7 +2,7 @@
  * api管理
  */
 export interface Params {
-    [key: string]: string;
+    [key: string]: any;
 }
 import request from '../utils/request'
 export default {
@@ -34,7 +34,7 @@ export default {
             data: {}
         })
     },
-    getUserList(params: Params) {
+    getUserList(params: Params): any {
         return request({
             url: '/users/list',
             method: 'get',
@@ -48,14 +48,14 @@ export default {
             data: {}
         })
     },
-    userDel(params: Params) {
+    userDel(params: Params): any {
         return request({
             url: '/users/delete',
             method: 'post',
             data: params
         })
     },
-    getRoleAllList() {
+    getRoleAllList(): any {
         return request({
             url: '/roles/allList',
             method: 'get',
@@ -69,7 +69,7 @@ export default {
             data: params
         })
     },
-    getDeptList(params: Params) {
+    getDeptList(params?: Params): any {
         return request({
             url: '/dept/list',
             method: 'get',
