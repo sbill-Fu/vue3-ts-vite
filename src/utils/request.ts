@@ -1,7 +1,7 @@
 /**
  * axios二次封装
  */
-import axios, { AxiosInstance, AxiosPromise, AxiosRequestConfig, Method } from 'axios'
+import axios, { AxiosRequestConfig, Method } from 'axios'
 import config from '../config'
 import { ElMessage } from 'element-plus'
 import router from '../router'
@@ -29,7 +29,7 @@ service.interceptors.request.use((req) => {
 service.interceptors.response.use((res) => {
     const { code, data, msg } = res.data;
     if (code === 200) {
-        return data;
+        return res;
     } else if (code === 500001) {
         ElMessage.error(TOKEN_INVALID)
         setTimeout(() => {
@@ -46,14 +46,19 @@ interface RequestOptions extends AxiosRequestConfig{
     [key: string]: any;
 }
 interface RequestFunction {
-    (options: RequestOptions): AxiosPromise<any>;
+    <T = any>(options: RequestOptions): Promise<T>;
     [key: string]: any;
 }
+export interface MyResponseType<T = any> {
+    code: number;
+    msg: string;
+    data: T;
+  }
 /**
  * 请求核心函数
  * @param {*} options 请求配置
  */
-let request: RequestFunction = (options: RequestOptions) => {
+let request: RequestFunction = async <T = any>(options: RequestOptions) => {
     options.method = options.method || 'get'
     if (options.method.toLowerCase() === 'get') {
         options.params = options.data;
@@ -67,7 +72,11 @@ let request: RequestFunction = (options: RequestOptions) => {
     } else {
         service.defaults.baseURL = isMock ? config.mockApi : config.baseApi
     }
-    return service(options)
+    // service.request 返回值是 AxiosResponse (含有 header config 之类的属性)，data 是接口返回的值，data.data 是接口返回值里的data
+    // 通过双层泛型来指定 AxiosResponse.data 的类型是什么(MyResponseType)，具体自己需要定义返回数据结构的类型是什么(T)
+    const data = await service.request<MyResponseType<T>>(options)
+    const data2 = await service.request<T>(options)
+    return data.data.data
 }
 
 ['get', 'post', 'put', 'delete', 'patch'].forEach((item) => {
