@@ -4,6 +4,7 @@
 export interface Params {
     [key: string]: any;
 }
+import { IUserList } from '@/types/user';
 import request from '../utils/request'
 export default {
     login(params: Params) {
@@ -34,8 +35,8 @@ export default {
             data: {}
         })
     },
-    getUserList(params: Params): any {
-        return request({
+    getUserList(params: Params) {
+        return request<IUserList>({
             url: '/users/list',
             method: 'get',
             data: params

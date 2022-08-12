@@ -75,7 +75,6 @@ let request: RequestFunction = async <T = any>(options: RequestOptions) => {
     // service.request 返回值是 AxiosResponse (含有 header config 之类的属性)，data 是接口返回的值，data.data 是接口返回值里的data
     // 通过双层泛型来指定 AxiosResponse.data 的类型是什么(MyResponseType)，具体自己需要定义返回数据结构的类型是什么(T)
     const data = await service.request<MyResponseType<T>>(options)
-    const data2 = await service.request<T>(options)
     return data.data.data
 }
 

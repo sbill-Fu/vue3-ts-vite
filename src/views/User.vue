@@ -148,53 +148,29 @@ import { nextTick, onMounted, reactive, ref, toRaw, watch } from "vue";
 import utils from "../utils/utils";
 import api from '@/api'
 import { FormInstance, ElMessage } from "element-plus";
-interface ISearch {
-  userId: string | number;
-  userName: string;
-  state: number;
-}
-interface IUser {
-  userId: string;
-  userName: string;
-  userEmail: string;
-  mobile: string | number;
-  job: string;
-  roleList: IRole[];
-  state: number;
-  deptId: string;
-  action?: string;
-}
-interface IRole {
-  _id: string | number;
-  id: string | number;
-  roleName: string;
-}
+import { IRole, IUser } from "@/types/user";
+import { IPager } from "@/types/page";
 // 初始化用户表单对象
-const user = reactive<ISearch>({
+const user = reactive<Partial<IUser>>({
   state: 1,
-  userId: '',
+  userId: 0,
   userName: ''
 });
 // 初始化用户列表数据
-const userList = ref([]);
+const userList = ref<Array<IUser>>([]);
 // 初始化分页对象
-interface IPager {
-  pageNum: number;
-  pageSize: number;
-  total?: number;
-}
 const pager = reactive<IPager>({
   pageNum: 1,
   pageSize: 10,
 });
 // 选中用户列表对象
-const checkedUserIds = ref<string[]>([]);
+const checkedUserIds = ref<number[]>([]);
 // 弹框显示对象
 const showModal = ref(false);
 // 新增用户Form对象
 const userForm = reactive<IUser>({
   state: 3,
-  userId: '',
+  userId: 0,
   userName: '',
   userEmail: '',
   mobile: '',
@@ -250,7 +226,7 @@ const columns = reactive([
   {
     label: "用户角色",
     prop: "role",
-    formatter(row: IUser, column: IUser, value: string | number) {
+    formatter(row: IUser, column: IUser, value: number) {
       return {
         0: "管理员",
         1: "普通用户",
@@ -260,7 +236,7 @@ const columns = reactive([
   {
     label: "用户状态",
     prop: "state",
-    formatter(row: IUser, column: IUser, value: string | number) {
+    formatter(row: IUser, column: IUser, value: number) {
       return {
         1: "在职",
         2: "离职",
@@ -311,7 +287,6 @@ const handleReset = (formInstance: FormInstance | undefined) => {
 };
 // 分页事件处理
 watch(() => pager.pageNum, () => {
-  console.log('watch: ')
   getUserList()
 })
 // 用户单个删除
@@ -341,7 +316,7 @@ const handlePatchDel = async () => {
 
 // 表格多选
 const handleSelectionChange = (list: IUser[]) => {
-  let arr: string[] = [];
+  let arr: number[] = [];
   list.map((item) => {
     arr.push(item.userId);
   });
