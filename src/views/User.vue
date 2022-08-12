@@ -153,7 +153,7 @@ import { IPager } from "@/types/page";
 // 初始化用户表单对象
 const user = reactive<Partial<IUser>>({
   state: 1,
-  userId: 0,
+  userId: '',
   userName: ''
 });
 // 初始化用户列表数据
@@ -318,7 +318,7 @@ const handlePatchDel = async () => {
 const handleSelectionChange = (list: IUser[]) => {
   let arr: number[] = [];
   list.map((item) => {
-    arr.push(item.userId);
+    arr.push(item.userId as number);
   });
   checkedUserIds.value = arr;
 };

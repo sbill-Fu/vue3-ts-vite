@@ -7,7 +7,7 @@ export interface IRole {
 }
 
 export interface IUser {
-  userId: number;
+  userId: number | string;
   userName: string;
   userEmail: string;
   mobile: string;

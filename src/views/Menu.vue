@@ -13,7 +13,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="getMenuList">查询</el-button>
-          <el-button @click="handleReset('form')">重置</el-button>
+          <el-button @click="handleReset(form)">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -40,15 +40,15 @@
             <el-button
               @click="handleAdd(2, scope.row)"
               type="primary"
-              size="mini"
+              size="small"
               >新增</el-button
             >
-            <el-button @click="handleEdit(scope.row)" size="mini"
+            <el-button @click="handleEdit(scope.row)" size="small"
               >编辑</el-button
             >
             <el-button
               type="danger"
-              size="mini"
+              size="small"
               @click="handleDel(scope.row._id)"
               >删除</el-button
             >
@@ -129,151 +129,132 @@
     </el-dialog>
   </div>
 </template>
-<script>
-import utils from "../utils/utils";
-export default {
-  name: "menu",
-  data() {
-    return {
-      queryForm: {
-        menuState: 1,
-      },
-      menuList: [],
-      columns: [
-        {
-          label: "菜单名称",
-          prop: "menuName",
-          width: 150,
-        },
-        {
-          label: "图标",
-          prop: "icon",
-        },
-        {
-          label: "菜单类型",
-          prop: "menuType",
-          formatter(row, column, value) {
-            return {
-              1: "菜单",
-              2: "按钮",
-            }[value];
-          },
-        },
-        {
-          label: "权限标识",
-          prop: "menuCode",
-        },
-        {
-          label: "路由地址",
-          prop: "path",
-        },
-        {
-          label: "组件路径",
-          prop: "component",
-        },
-        {
-          label: "菜单状态",
-          prop: "menuState",
-          width: 90,
-          formatter(row, column, value) {
-            return {
-              1: "正常",
-              2: "停用",
-            }[value];
-          },
-        },
-        {
-          label: "创建时间",
-          prop: "createTime",
-          formatter(row, column, value) {
-            return utils.formateDate(new Date(value));
-          },
-        },
-      ],
-      showModal: false,
-      menuForm: {
-        parentId: [null],
-        menuType: 1,
-        menuState: 1,
-      },
-      action: "",
-      rules: {
-        menuName: [
-          {
-            required: true,
-            message: "请输入菜单名称",
-            trigger: "blur",
-          },
-          {
-            min: 2,
-            max: 10,
-            message: "长度在2-8个字符",
-            trigger: "blur",
-          },
-        ],
-      },
-    };
-  },
-  mounted() {
-    this.getMenuList();
-  },
-  methods: {
-    // 菜单列表初始化
-    async getMenuList() {
-      try {
-        let list = await this.$api.getMenuList(this.queryForm);
-        this.menuList = list;
-      } catch (e) {
-        throw new Error(e);
-      }
-    },
-    // 表单重置
-    handleReset(form) {
-      this.$refs[form].resetFields();
-    },
-    // 新增菜单
-    handleAdd(type, row) {
-      this.showModal = true;
-      this.action = "add";
-      if (type == 2) {
-        this.menuForm.parentId = [...row.parentId, row._id].filter(
-          (item) => item
-        );
-      }
-    },
-    handleEdit(row) {
-      this.showModal = true;
-      this.action = "edit";
-      this.$nextTick(() => {
-        Object.assign(this.menuForm, row);
-      });
-    },
-    async handleDel(_id) {
-      await this.$api.menuSubmit({ _id, action: "delete" });
-      this.$message.success("删除成功");
-      this.getMenuList();
-    },
-    // 菜单操作-提交
-    handleSubmit() {
-      this.$refs.dialogForm.validate(async (valid) => {
-        if (valid) {
-          let { action, menuForm } = this;
-          let params = { ...menuForm, action };
-          let res = await this.$api.menuSubmit(params);
-          this.showModal = false;
-          this.$message.success("操作成功");
-          this.handleReset("dialogForm");
-          this.getMenuList();
-        }
-      });
-    },
-    // 弹框关闭
-    handleClose() {
-      this.showModal = false;
-      this.handleReset("dialogForm");
+<script lang="ts" setup>
+import api from "@/api"
+import { IMenu } from "@/types/menu"
+import { ElMessage, FormInstance, FormRules } from "element-plus"
+import { nextTick, onMounted, ref } from "vue"
+import utils from "../utils/utils"
+
+const queryForm = ref<Partial<IMenu>>({menuState: 1})
+const menuList = ref<Array<IMenu>>([])
+const columns = [
+  { label: "菜单名称", prop: "menuName", width: 150, },
+  { label: "图标", prop: "icon", },
+  {
+    label: "菜单类型",
+    prop: "menuType",
+    formatter(row: IMenu, column: IMenu, value: number) {
+      return {
+        1: "菜单",
+        2: "按钮",
+      }[value];
     },
   },
-};
+  { label: "权限标识", prop: "menuCode", },
+  { label: "路由地址", prop: "path", },
+  { label: "组件路径", prop: "component", },
+  {
+    label: "菜单状态",
+    prop: "menuState",
+    width: 90,
+    formatter(row: IMenu, column: IMenu, value: number) {
+      return {
+        1: "正常",
+        2: "停用",
+      }[value];
+    },
+  },
+  {
+    label: "创建时间",
+    prop: "createTime",
+    formatter(row: IMenu, column: IMenu, value: string) {
+      return utils.formateDate(new Date(value));
+    },
+  },
+]
+const showModal = ref(false)
+const menuForm = ref<Partial<IMenu>>({
+  parentId: [null],
+  menuType: 1,
+  menuState: 1,
+})
+let action = ''
+let rules: FormRules = {
+  menuName: [
+    { required: true, message: "请输入菜单名称", trigger: "blur", },
+    { min: 2, max: 10, message: "长度在2-8个字符", trigger: "blur", },
+  ],
+}
+
+const form = ref<FormInstance>()
+const dialogForm = ref<FormInstance>()
+
+onMounted(() => {
+  getMenuList()
+})
+// 菜单列表初始化
+const getMenuList = async () => {
+  try {
+    let list = await api.getMenuList(queryForm.value)
+    menuList.value = list
+  } catch (e: Error) {
+    throw new Error(e)
+  }
+}
+
+// 表单重置
+const handleReset = (formRef: FormInstance | undefined) => {
+  formRef && formRef.resetFields()
+}
+
+// 新增菜单
+const handleAdd = (type: number, row?: IMenu) => {
+  showModal.value = true
+  action = "add"
+  if (type == 2 && row) {
+    if (row.parentId) {
+      menuForm.value.parentId = [...row.parentId, row._id].filter(
+        (item) => item
+      )
+    }
+  }
+}
+
+const handleEdit = (row: IMenu) => {
+  showModal.value = true
+  action = "edit"
+  nextTick(() => {
+    menuForm.value = row
+  })
+}
+
+const handleDel = async (_id: number) => {
+  await api.menuSubmit({ _id, action: "delete" })
+  ElMessage.success("删除成功")
+  getMenuList()
+}
+
+// 菜单操作-提交
+const handleSubmit = () => {
+  dialogForm.value && dialogForm.value.validate(async (valid) => {
+    if (valid) {
+      let params = { ...menuForm.value, action }
+      console.log({params})
+      await api.menuSubmit(params)
+      showModal.value = false
+      ElMessage.success("操作成功")
+      handleReset(dialogForm.value)
+      getMenuList()
+    }
+  })
+}
+
+// 弹框关闭
+const handleClose = () => {
+  showModal.value = false
+  handleReset(dialogForm.value)
+}
 </script>
 
 <style lang="scss">
