@@ -1,16 +1,17 @@
 <template>
   <div class="dept-manage">
     <div class="query-form">
-      <el-form :inline="true" ref="queryForm" :model="queryForm">
+      <el-form :inline="true" ref="queryFormRef" :model="queryForm">
         <el-form-item label="部门名称">
           <el-input
             placeholder="请输入部门名称"
             v-model="queryForm.deptName"
+            @keyup.enter.native="getDeptList"
           ></el-input>
         </el-form-item>
         <el-form-item>
           <el-button @click="getDeptList" type="primary">查询</el-button>
-          <el-button @click="handleReset('queryForm')">重置</el-button>
+          <el-button @click="handleReset(queryFormRef)">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -31,11 +32,11 @@
         ></el-table-column>
         <el-table-column label="操作">
           <template #default="scope">
-            <el-button size="mini" type="primary" @click="handleEdit(scope.row)"
+            <el-button size="small" type="primary" @click="handleEdit(scope.row)"
               >编辑</el-button
             >
             <el-button
-              size="mini"
+              size="small"
               type="danger"
               @click="handleDel(scope.row._id)"
               >删除</el-button
@@ -101,123 +102,88 @@
     </el-dialog>
   </div>
 </template>
-<script>
-export default {
-  name: "dept",
-  data() {
-    return {
-      queryForm: {
-        deptName: "",
-      },
-      columns: [
-        {
-          label: "部门名称",
-          prop: "deptName",
-        },
-        {
-          label: "负责人",
-          prop: "userName",
-        },
-        {
-          label: "更新时间",
-          prop: "updateTime",
-        },
-        {
-          label: "创建时间",
-          prop: "createTime",
-        },
-      ],
-      deptList: [],
-      pager: {
-        pageNum: 1,
-        pageSize: 10,
-      },
-      action: "create",
-      showModal: false,
-      deptForm: {
-        parentId: [null],
-      },
-      userList: [],
-      rules: {
-        parentId: [
-          {
-            required: true,
-            message: "请选择上级部门",
-            trigger: "blur",
-          },
-        ],
-        deptName: [
-          {
-            required: true,
-            message: "请输入部门名称",
-            trigger: "blur",
-          },
-        ],
-        user: [
-          {
-            required: true,
-            message: "请选择负责人",
-            trigger: "blur",
-          },
-        ],
-      },
-    };
-  },
-  mounted() {
-    this.getDeptList();
-    this.getAllUserList();
-  },
-  methods: {
-    async getDeptList() {
-      let list = await this.$api.getDeptList(this.queryForm);
-      this.deptList = list;
-    },
-    async getAllUserList() {
-      this.userList = await this.$api.getAllUserList();
-    },
-    handleUser(val) {
-      console.log("=>", val);
-      const [userId, userName, userEmail] = val.split("/");
-      Object.assign(this.deptForm, { userId, userName, userEmail });
-    },
-    handleReset(form) {
-      this.$refs[form].resetFields();
-    },
-    handleOpen() {
-      this.action = "create";
-      this.showModal = true;
-    },
-    handleEdit(row) {
-      this.action = "edit";
-      this.showModal = true;
-      this.$nextTick(() => {
-        Object.assign(this.deptForm, row, {
-          user: `${row.userId}/${row.userName}/${row.userEmail}`,
-        });
-      });
-    },
-    async handleDel(_id) {
-      this.action = "delete";
-      await this.$api.deptOperate({ _id, action: this.action });
-      this.$message.success("删除成功");
-      this.getDeptList();
-    },
-    handleClose() {
-      this.showModal = false;
-      this.handleReset("dialogForm");
-    },
-    handleSubmit() {
-      this.$refs.dialogForm.validate(async (valid) => {
-        if (valid) {
-          let params = { ...this.deptForm, action: this.action };
-          delete params.user;
-          await this.$api.deptOperate(params);
-          this.$message.success("操作成功");
-          this.handleClose();
-          this.getDeptList();
-        }
-      });
-    },
-  },
-};
+<script lang="ts" setup>
+import api from '@/api';
+import { IDept, IUser } from '@/types/dept'
+import { IPager } from '@/types/page';
+import { ElMessage, FormInstance, FormRules } from 'element-plus';
+import { nextTick, onMounted, ref } from 'vue'
+
+const queryForm = ref<Partial<IDept>>({
+  deptName: ""
+})
+const columns = [
+  { label: "部门名称", prop: "deptName", },
+  { label: "负责人", prop: "userName", },
+  { label: "更新时间", prop: "updateTime", },
+  { label: "创建时间", prop: "createTime", }
+]
+const deptList = ref<Array<IDept>>([])
+const pager = ref<IPager>({ pageNum: 1, pageSize: 10, })
+const action = ref('create')
+const showModal = ref(false)
+const deptForm = ref<Partial<IDept>>({ parentId: [null], })
+const userList = ref<Array<IUser>>([])
+const rules: FormRules = {
+  parentId: [ { required: true, message: "请选择上级部门", trigger: "blur", }, ],
+  deptName: [ { required: true, message: "请输入部门名称", trigger: "blur", }, ],
+  user: [ { required: true, message: "请选择负责人", trigger: "blur", }, ],
+}
+
+const queryFormRef = ref<FormInstance>()
+const dialogForm = ref<FormInstance>()
+
+onMounted(() => {
+  getDeptList()
+  getAllUserList()
+})
+
+const getDeptList = async() => {
+  let list = await api.getDeptList(queryForm.value)
+  deptList.value = list
+}
+const getAllUserList = async() => {
+  userList.value = await api.getAllUserList()
+}
+const handleUser = (val: string) => {
+  const [userId, userName, userEmail] = val.split("/")
+  deptForm.value = {...deptForm.value, userId, userName, userEmail }
+}
+const handleReset = (formInstance: FormInstance | undefined) => {
+  formInstance && formInstance.resetFields()
+}
+const handleOpen = () => {
+  action.value = 'create'
+  showModal.value = true
+}
+const handleEdit = (row: IDept) => {
+  action.value = 'edit'
+  showModal.value = true
+  nextTick(() => {
+    deptForm.value = row
+    deptForm.value.user = `${row.userId}/${row.userName}/${row.userEmail}`
+  })
+}
+const handleDel = async(_id: string) => {
+  action.value = "delete"
+  await api.deptOperate({ _id, action: action.value })
+  ElMessage.success("删除成功")
+  getDeptList()
+}
+const handleClose = () => {
+  showModal.value = false;
+  handleReset(dialogForm.value)
+}
+const handleSubmit = () => {
+  dialogForm.value?.validate(async (valid) => {
+    if (valid) {
+      let params = { ...deptForm.value, action: action.value }
+      delete params.user
+      await api.deptOperate(params)
+      ElMessage.success("操作成功")
+      handleClose()
+      getDeptList()
+    }
+  })
+}
 </script>

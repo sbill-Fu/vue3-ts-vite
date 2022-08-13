@@ -4,6 +4,7 @@
 export interface Params {
     [key: string]: any;
 }
+import { IDept, IUser } from '@/types/dept';
 import { IMenu, IRoleList } from '@/types/role';
 import { IUserList } from '@/types/user';
 import request from '../utils/request'
@@ -44,7 +45,7 @@ export default {
         })
     },
     getAllUserList() {
-        return request({
+        return request<Array<IUser>>({
             url: '/users/all/list',
             method: 'get',
             data: {}
@@ -71,8 +72,8 @@ export default {
             data: params
         })
     },
-    getDeptList(params?: Params): any {
-        return request({
+    getDeptList(params?: Params) {
+        return request<Array<IDept>>({
             url: '/dept/list',
             method: 'get',
             data: params
