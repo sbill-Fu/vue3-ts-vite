@@ -4,6 +4,7 @@
 export interface Params {
     [key: string]: any;
 }
+import { IMenu, IRoleList } from '@/types/role';
 import { IUserList } from '@/types/user';
 import request from '../utils/request'
 export default {
@@ -21,8 +22,8 @@ export default {
             data: {}
         })
     },
-    getMenuList(params: Params) {
-        return request({
+    getMenuList(params?: Params) {
+        return request<Array<IMenu>>({
             url: '/menu/list',
             method: 'get',
             data: params
@@ -64,7 +65,7 @@ export default {
         })
     },
     getRoleList(params: Params) {
-        return request({
+        return request<IRoleList>({
             url: '/roles/list',
             method: 'get',
             data: params

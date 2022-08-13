@@ -3,11 +3,11 @@
     <div class="query-form">
       <el-form ref="form" :inline="true" :model="queryForm">
         <el-form-item label="角色名称" prop="roleName">
-          <el-input v-model="queryForm.roleName" placeholder="请输入角色名称" />
+          <el-input v-model="queryForm.roleName" placeholder="请输入角色名称" @keyup.enter.native="getRoleList" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="getRoleList">查询</el-button>
-          <el-button @click="handleReset('form')">重置</el-button>
+          <el-button @click="handleReset(form)">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -27,18 +27,18 @@
         </el-table-column>
         <el-table-column label="操作" width="260">
           <template #default="scope">
-            <el-button size="mini" @click="handleEdit(scope.row)"
+            <el-button size="small" @click="handleEdit(scope.row)"
               >编辑</el-button
             >
             <el-button
-              size="mini"
+              size="small"
               type="primary"
               @click="handleOpenPermission(scope.row)"
               >设置权限</el-button
             >
             <el-button
               type="danger"
-              size="mini"
+              size="small"
               @click="handleDel(scope.row._id)"
               >删除</el-button
             >
@@ -109,210 +109,209 @@
     </el-dialog>
   </div>
 </template>
-<script>
+<script lang="ts" setup>
+import api from '@/api';
+import { IPager } from '@/types/page';
+import { IMenu, IRole } from '@/types/role';
+import { ElMessage, ElTree, FormInstance, FormRules } from 'element-plus';
+import { nextTick, onMounted, ref } from "vue";
 import utils from "../utils/utils";
-export default {
-  name: "role",
-  data() {
-    return {
-      queryForm: {
-        roleName: "",
-      },
-      columns: [
-        {
-          label: "角色名称",
-          prop: "roleName",
-        },
-        {
-          label: "备注",
-          prop: "remark",
-        },
-        {
-          label: "权限列表",
-          prop: "permissionList",
-          width: 200,
-          formatter: (row, column, value) => {
-            let names = [];
-            let list = value.halfCheckedKeys || [];
-            list.map((key) => {
-              let name = this.actionMap[key];
-              if (key && name) names.push(name);
-            });
-            return names.join(",");
-          },
-        },
-        {
-          label: "更新时间",
-          prop: "updateTime",
-          formatter(row, column, value) {
-            return utils.formateDate(new Date(value));
-          },
-        },
-        {
-          label: "创建时间",
-          prop: "createTime",
-          formatter(row, column, value) {
-            return utils.formateDate(new Date(value));
-          },
-        },
-      ],
-      roleList: [],
-      pager: {
-        total: 0,
-        pageNum: 1,
-        pageSize: 10,
-      },
-      showModal: false,
-      action: "create",
-      roleForm: {},
-      rules: {
-        roleName: [
-          {
-            required: true,
-            message: "请输入角色角色名称",
-          },
-        ],
-      },
-      // 权限展示
-      showPermission: false,
-      curRoleId: "",
-      curRoleName: "",
-      menuList: [],
-      // 菜单映射表
-      actionMap: {},
-    };
+
+const queryForm = ref<Partial<IRole>>({ roleName: ""})
+// 菜单映射表
+let actionMap: {[key: string]: string} = {}
+const columns = [
+  { label: "角色名称", prop: "roleName", },
+  { label: "备注", prop: "remark", },
+  {
+    label: "权限列表",
+    prop: "permissionList",
+    width: 200,
+    formatter: (row: IRole, column: IRole, value: any) => {
+      let names: any[] = [];
+      let list = value.halfCheckedKeys || [];
+      list.map((key: any) => {
+        let name = actionMap[key];
+        if (key && name) names.push(name);
+      });
+      return names.join(",");
+    },
   },
-  mounted() {
-    this.getRoleList();
-    this.getMenuList();
+  {
+    label: "更新时间",
+    prop: "updateTime",
+    formatter(row: IRole, column: IRole, value: string) {
+      return utils.formateDate(new Date(value));
+    },
   },
-  methods: {
-    // 角色列表初始化
-    async getRoleList() {
-      try {
-        let { list, page } = await this.$api.getRoleList({
-          ...this.queryForm,
-          ...this.pager,
-        });
-        this.roleList = list;
-        this.pager.total = page.total;
-      } catch (e) {
-        throw new Error(e);
+  {
+    label: "创建时间",
+    prop: "createTime",
+    formatter(row: IRole, column: IRole, value: string) {
+      return utils.formateDate(new Date(value));
+    },
+  },
+]
+const roleList = ref<Array<IRole>>([])
+const pager = ref<IPager>({
+  total: 0,
+  pageNum: 1,
+  pageSize: 10,
+})
+const showModal = ref(false)
+let action = 'create'
+const roleForm = ref<Partial<IRole>>({})
+const rules: FormRules= { roleName: [ { required: true, message: "请输入角色角色名称" } ] }
+// 权限展示
+const showPermission = ref(false)
+let curRoleId = ''
+const curRoleName = ref('')
+const menuList = ref<Array<IMenu>>([])
+
+const form = ref<FormInstance>()
+const dialogForm = ref<FormInstance>()
+const tree = ref<InstanceType<typeof ElTree>>()
+
+onMounted(() => {
+  getRoleList();
+  getMenuList();
+})
+
+// 角色列表初始化
+const getRoleList = async() => {
+  try {
+    let { list, page } = await api.getRoleList({
+      ...queryForm.value,
+      ...pager.value
+    })
+    roleList.value = list
+    pager.value.total = page.total
+  } catch (e: any) {
+    throw new Error(e)
+  }
+}
+
+// 菜单列表初始化
+const getMenuList = async() => {
+  try {
+    let list = await api.getMenuList()
+    menuList.value = list
+    getActionMap(list)
+  } catch (e: any) {
+    throw new Error(e)
+  }
+}
+
+// 表单重置
+const handleReset = (formInstance: FormInstance | undefined) => {
+  formInstance && formInstance.resetFields()
+}
+
+// 角色添加
+const handleAdd = () => {
+  action = "create"
+  showModal.value = true
+}
+
+// 角色编辑
+const handleEdit = (row: IRole) => {
+  action = "edit"
+  showModal.value = true
+  nextTick(() => {
+    roleForm.value = {
+      _id: row._id,
+      roleName: row.roleName,
+      remark: row.remark,
+    }
+  })
+}
+
+// 角色删除
+const handleDel = async(_id: string) => {
+  await api.roleOperate({ _id, action: "delete" })
+  ElMessage.success("删除成功")
+  getRoleList()
+}
+
+// 弹框关闭
+const handleClose = () => {
+  handleReset(dialogForm.value)
+  showModal.value = false
+}
+
+// 角色提交
+const handleSubmit = () => {
+  dialogForm.value?.validate(async (valid) => {
+    if (valid) {
+      let params = { ...roleForm.value, action }
+      let res = await api.roleOperate(params)
+      if (res) {
+        showModal.value = false
+        ElMessage.success("创建成功")
+        handleReset(dialogForm.value)
+        getRoleList()
       }
+    }
+  })
+}
+
+const handleCurrentChange = (current: number) => {
+  pager.value.pageNum = current
+  getRoleList()
+}
+
+const handleOpenPermission = (row: IRole) => {
+  curRoleId = row._id
+  curRoleName.value = row.roleName
+  showPermission.value = true
+  let { checkedKeys } = row.permissionList
+  setTimeout(() => {
+    tree.value?.setCheckedKeys(checkedKeys)
+  })
+}
+
+const handlePermissionSubmit = async() => {
+  let nodes = tree.value?.getCheckedNodes();
+  let halfKeys: string[] = tree.value?.getHalfCheckedKeys() as string[];
+  let checkedKeys: string[] = [];
+  let parentKeys: string[] = [];
+  nodes?.map((node) => {
+    if (!node.children) {
+      checkedKeys.push(node._id);
+    } else {
+      parentKeys.push(node._id);
+    }
+  });
+  let params = {
+    _id: curRoleId,
+    permissionList: {
+      checkedKeys,
+      halfCheckedKeys: parentKeys.concat(halfKeys),
     },
-    // 菜单列表初始化
-    async getMenuList() {
-      try {
-        let list = await this.$api.getMenuList();
-        this.menuList = list;
-        this.getActionMap(list);
-      } catch (e) {
-        throw new Error(e);
+  };
+  await api.updatePermission(params);
+  showPermission.value = false;
+  ElMessage.success("设置成功");
+  getRoleList();
+}
+
+const getActionMap = (list: IMenu[]) => {
+  let actionTmpMap: typeof actionMap = {}
+  const deep = (arr: IMenu[]) => {
+    while (arr.length) {
+      let item = arr.pop()
+      if (!item) break
+      if (item.children && item.action) {
+        actionTmpMap[item._id] = item.menuName
       }
-    },
-    // 表单重置
-    handleReset(form) {
-      this.$refs[form].resetFields();
-    },
-    // 角色添加
-    handleAdd() {
-      this.action = "create";
-      this.showModal = true;
-    },
-    // 角色编辑
-    handleEdit(row) {
-      this.action = "edit";
-      this.showModal = true;
-      this.$nextTick(() => {
-        this.roleForm = {
-          _id: row._id,
-          roleName: row.roleName,
-          remark: row.remark,
-        };
-      });
-    },
-    // 角色删除
-    async handleDel(_id) {
-      await this.$api.roleOperate({ _id, action: "delete" });
-      this.$message.success("删除成功");
-      this.getRoleList();
-    },
-    // 弹框关闭
-    handleClose() {
-      this.handleReset("dialogForm");
-      this.showModal = false;
-    },
-    // 角色提交
-    handleSubmit() {
-      this.$refs.dialogForm.validate(async (valid) => {
-        if (valid) {
-          let { roleForm, action } = this;
-          let params = { ...roleForm, action };
-          let res = await this.$api.roleOperate(params);
-          if (res) {
-            this.showModal = false;
-            this.$message.success("创建成功");
-            this.handleReset("dialogForm");
-            this.getRoleList();
-          }
-        }
-      });
-    },
-    handleCurrentChange(current) {
-      this.pager.pageNum = current;
-      this.getRoleList();
-    },
-    handleOpenPermission(row) {
-      this.curRoleId = row._id;
-      this.curRoleName = row.roleName;
-      this.showPermission = true;
-      let { checkedKeys } = row.permissionList;
-      setTimeout(() => {
-        this.$refs.tree.setCheckedKeys(checkedKeys);
-      });
-    },
-    async handlePermissionSubmit() {
-      let nodes = this.$refs.tree.getCheckedNodes();
-      let halfKeys = this.$refs.tree.getHalfCheckedKeys();
-      let checkedKeys = [];
-      let parentKeys = [];
-      nodes.map((node) => {
-        if (!node.children) {
-          checkedKeys.push(node._id);
-        } else {
-          parentKeys.push(node._id);
-        }
-      });
-      let params = {
-        _id: this.curRoleId,
-        permissionList: {
-          checkedKeys,
-          halfCheckedKeys: parentKeys.concat(halfKeys),
-        },
-      };
-      await this.$api.updatePermission(params);
-      this.showPermission = false;
-      this.$message.success("设置成功");
-      this.getRoleList();
-    },
-    getActionMap(list) {
-      let actionMap = {};
-      const deep = (arr) => {
-        while (arr.length) {
-          let item = arr.pop();
-          if (item.children && item.action) {
-            actionMap[item._id] = item.menuName;
-          }
-          if (item.children && !item.action) {
-            deep(item.children);
-          }
-        }
-      };
-      deep(JSON.parse(JSON.stringify(list)));
-      this.actionMap = actionMap;
-    },
-  },
-};
+      if (item.children && !item.action) {
+        deep(item.children)
+      }
+    }
+  };
+  deep(JSON.parse(JSON.stringify(list)));
+  actionMap = actionTmpMap;
+}
 </script>
 
 <style lang="scss">
