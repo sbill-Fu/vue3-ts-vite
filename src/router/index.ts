@@ -3,6 +3,7 @@ import Home from '@/components/Home.vue'
 import storage from '../utils/storage'
 import API from '../api'
 import utils from '../utils/utils'
+import store from '../store'
 
 const routes = [
     {
@@ -51,17 +52,18 @@ async function loadAsyncRoutes() {
     let userInfo = storage.getItem('userInfo') || {}
     if (userInfo.token) {
         try {
-            const { menuList } = await API.getPermissionList()
-            let routes = utils.generateRoute(menuList)
+            const { menuList, actionList } = await API.getPermissionList();
+            store.commit("saveMenuList", menuList);
+            store.commit("saveActionList", actionList);
+            let routes = utils.generateRoute(JSON.parse(JSON.stringify(menuList)))
             const modules = import.meta.glob('../views/*.vue')
-            console.log('views',modules)
             routes.map(route => {
                 let url = `../views/${route.name}.vue`
                 route.component = modules[url];
                 router.addRoute("home", route);
             })
         } catch (error) {
-
+            console.error(error)
         }
     }
 }
@@ -87,6 +89,7 @@ router.beforeEach(async (to, from, next) => {
             next('/404')
         }
     } else {
+        // TODO 如果在一个子页面刷新的话，会进入到此判断逻辑，暂时搞不明白
         await loadAsyncRoutes()
         let curRoute = router.getRoutes().filter(item => item.path == to.path)
         if (curRoute?.length) {

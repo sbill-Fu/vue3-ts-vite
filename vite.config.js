@@ -19,8 +19,12 @@ export default defineConfig({
     host:'localhost',
     port:8080,
     proxy:{
+      // "/api":{
+      //   target:"http://api-manager.marsview.cc",
+      //   changeOrigin: true,
+      // },
       "/api":{
-        target:"http://api-manager.marsview.cc",
+        target:"http://localhost:3000",
         changeOrigin: true,
       }
     }

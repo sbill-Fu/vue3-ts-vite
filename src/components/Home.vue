@@ -12,11 +12,11 @@
   const activeMenu =  ref(location.hash.slice(1))
 
   const noticeCount = computed(() => {
-    return store.state.noticeCount
+    return store.state.noticeCount || 0
   })
 
   onMounted(() => {
-    getNoticeCount()
+    // getNoticeCount()
     getMenuList()
   })
 
@@ -45,9 +45,7 @@
   const userMenu = ref([])
   const getMenuList = async() => {
     try {
-      const { menuList, actionList } = await api.getPermissionList();
-      store.commit("saveMenuList", menuList);
-      store.commit("saveActionList", actionList);
+      const menuList = store.state.menuList
       userMenu.value = menuList
     } catch (error) {
       console.error(error);
