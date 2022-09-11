@@ -5,6 +5,8 @@
   import { useStore } from 'vuex'
   import { useRouter } from 'vue-router';
   import api from '@/api'
+import bus from '@/utils/bus';
+import { IMenu } from '@/types/menu';
 
   const store = useStore()
   const router = useRouter()
@@ -18,6 +20,9 @@
   onMounted(() => {
     // getNoticeCount()
     getMenuList()
+    bus.on('updateMenu', (menuList) => {
+      userMenu.value = menuList as IMenu[]
+    })
   })
 
   const isCollapse = ref(false)
@@ -42,7 +47,7 @@
     }
   }
 
-  const userMenu = ref([])
+  const userMenu = ref<IMenu[]>([])
   const getMenuList = async() => {
     try {
       const menuList = store.state.menuList

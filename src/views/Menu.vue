@@ -132,6 +132,7 @@
 <script lang="ts" setup>
 import api from "@/api"
 import { IMenu } from "@/types/menu"
+import bus from '@/utils/bus'
 import { ElMessage, FormInstance, FormRules } from "element-plus"
 import { nextTick, onMounted, ref } from "vue"
 import utils from "../utils/utils"
@@ -198,6 +199,7 @@ const getMenuList = async () => {
   try {
     let list = await api.getMenuList(queryForm.value)
     menuList.value = list
+    bus.emit('updateMenu', list)
   } catch (e: Error) {
     throw new Error(e)
   }
