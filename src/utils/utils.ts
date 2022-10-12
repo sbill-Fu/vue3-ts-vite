@@ -42,7 +42,7 @@ export default {
         const deepList = (list: IMenuList[]) => {
             while (list.length) {
                 let item = list.pop()
-                if (item?.action) {
+                if (item?.action || (item?.component && !item.children)) {
                     routes.push({
                         name: item.component,
                         path: item.path,
