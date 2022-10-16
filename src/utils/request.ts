@@ -10,6 +10,7 @@ import { Params } from '@/api'
 
 const TOKEN_INVALID = 'Token认证失败，请重新登录'
 const NETWORK_ERROR = '网络请求异常，请稍后重试'
+const TIMEOUT_ERROR = '网络超时'
 
 // 创建axios实例对象，添加全局配置
 const service = axios.create({
@@ -39,6 +40,12 @@ service.interceptors.response.use((res) => {
     } else {
         ElMessage.error(msg || NETWORK_ERROR)
         return Promise.reject(msg || NETWORK_ERROR)
+    }
+}, (err: Error) => {
+    if (err.message.includes('timeout')) {
+        ElMessage.error(TIMEOUT_ERROR)
+    } else {
+        ElMessage.error(err.message)
     }
 })
 interface RequestOptions extends AxiosRequestConfig{
