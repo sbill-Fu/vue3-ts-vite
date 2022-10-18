@@ -8,6 +8,7 @@ import storage from './utils/storage'
 import api from './api'
 import store from './store'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue';
+import './index.css'
 
 console.log("环境变量=>", import.meta.env)
 const app = createApp(App);
