@@ -199,6 +199,7 @@ import { IMenu } from '@/types/menu';
       background: #eef0f3;
       padding: 20px;
       height: calc(100vh - 50px);
+      overflow-y: scroll;
       .main-page {
         background: #fff;
         height: 100%;

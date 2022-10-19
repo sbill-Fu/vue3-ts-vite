@@ -17,11 +17,13 @@ import {
 } from 'echarts/renderers'
 import {
   BarChart,
-  LineChart
+  LineChart,
+  PieChart
 } from 'echarts/charts'
 import {
   GridComponent,
-  TooltipComponent
+  TooltipComponent,
+  LegendComponent
 } from 'echarts/components'
 
 use([
@@ -29,7 +31,9 @@ use([
   BarChart,
   GridComponent,
   TooltipComponent,
-  LineChart
+  LineChart,
+  PieChart,
+  LegendComponent
 ])
 
 console.log("环境变量=>", import.meta.env)

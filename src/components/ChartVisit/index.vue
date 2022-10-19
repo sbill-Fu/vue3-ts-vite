@@ -1,5 +1,5 @@
 <template>
-  <div class="chart-visit h-full flex justify-between gap-2">
+  <div class="chart-visit flex justify-between gap-2">
     <VisitBar class="w-6/12 h-96" />
     <VisitLine class="w-6/12 h-96" />
   </div>
