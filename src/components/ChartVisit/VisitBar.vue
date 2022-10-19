@@ -1,14 +1,12 @@
 <template>
-  <div class="visit-bar w-full h-full rounded-md border bg-white shadow pb-3">
-    <h4 class="text-lg color text-black ml-6 mt-6">周访问量</h4>
-    <v-chart :option="option" />
-  </div>
+  <ChartCard title="周访问量" :option="(option as EChartsOption)" />
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { EChartsOption } from 'echarts'
 import { useVisit } from './data'
+import ChartCard from '@/components/ChartCard.vue'
 
 const data = useVisit()
 
