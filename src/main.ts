@@ -9,6 +9,28 @@ import api from './api'
 import store from './store'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue';
 import './index.css'
+import ECharts from 'vue-echarts'
+import { use } from "echarts/core"
+
+import {
+  CanvasRenderer
+} from 'echarts/renderers'
+import {
+  BarChart,
+  LineChart
+} from 'echarts/charts'
+import {
+  GridComponent,
+  TooltipComponent
+} from 'echarts/components'
+
+use([
+  CanvasRenderer,
+  BarChart,
+  GridComponent,
+  TooltipComponent,
+  LineChart
+])
 
 console.log("环境变量=>", import.meta.env)
 const app = createApp(App);
@@ -33,4 +55,4 @@ app.config.globalProperties.$storage = storage;
 for (let [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component);
   }
-app.use(router).use(store).use(ElementPlus).mount('#app')
+app.use(router).use(store).use(ElementPlus).component('v-chart', ECharts).mount('#app')

@@ -16,6 +16,9 @@ export interface IRoute extends Partial<Router> {
  * 工具函数封装
  */
 export default {
+    random(num = 1): number {
+        return Math.ceil(Math.random() * num)
+    },
     formateDate(date: Date, rule?: string) {
         let fmt = rule || 'yyyy-MM-dd hh:mm:ss'
         if (/(y+)/.test(fmt)) {
