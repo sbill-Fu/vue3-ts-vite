@@ -9,6 +9,9 @@
       <ChartPie class="w-6/12 h-96" />
       <ChartLiquid class="w-6/12 h-96" />
     </div>
+    <div class="min-h-full relative">
+      <ChartBMap />
+    </div>
   </div>
 </template>
 
@@ -17,6 +20,7 @@ import { CountTo } from 'vue3-count-to'
 import ChartVisit from '@/components/ChartVisit/index.vue'
 import ChartPie from '@/components/ChartPie/index.vue'
 import ChartLiquid from '@/components/ChartLiquid/index.vue'
+import ChartBMap from '@/components/ChartBMap/index.vue'
 
 
 </script>
