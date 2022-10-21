@@ -176,6 +176,7 @@ const option = ref<EChartsOption>({
         show: false,
         position: 'right',
         formatter: (v) => {
+          // @ts-ignore
           return `${v.data.name} - ${v.data.value[2]}`
         }
       },
