@@ -24,7 +24,9 @@ export default defineConfig({
       //   changeOrigin: true,
       // },
       "/api":{
-        target:"http://localhost:3000",
+        // target:"http://localhost:3000",
+        // target:"http://localhost:8081", // docker
+        target:"http://43.139.112.71:8081", // 腾讯云
         changeOrigin: true,
       }
     }

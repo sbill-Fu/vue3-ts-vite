@@ -11,6 +11,14 @@ import { Params } from '@/api'
 const TOKEN_INVALID = 'Token认证失败，请重新登录'
 const NETWORK_ERROR = '网络请求异常，请稍后重试'
 const TIMEOUT_ERROR = '网络超时'
+const CODE = {
+    SUCCESS: 200,
+    PARAM_ERROR: 10001, // 参数错误
+    USER_ACCOUNT_ERROR: 20001, // 账号或密码错误
+    USER_LOGIN_ERROR: 30001, // 用户未登录
+    BUSINESS_ERROR: 40001, // 业务请求失败
+    AUTH_ERROR: 50001, // 认证失败或TOKEN过期
+}
 
 // 创建axios实例对象，添加全局配置
 const service = axios.create({
@@ -31,7 +39,7 @@ service.interceptors.response.use((res) => {
     const { code, data, msg } = res.data;
     if (code === 200) {
         return res;
-    } else if (code === 500001) {
+    } else if (code === CODE.AUTH_ERROR) {
         ElMessage.error(TOKEN_INVALID)
         setTimeout(() => {
             router.push('/login')
