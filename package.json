@@ -5,7 +5,9 @@
     "dev": "vite --mode dev",
     "build": "tsc --noEmit && vite build",
     "build:dev": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "predeploy": "npm run build:dev",
+    "deploy": "gh-pages -d dist -r git@github.com:sbill-Fu/vue3-admin.git -b main"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.0.4",
@@ -28,6 +30,7 @@
     "@vitejs/plugin-vue": "^2.3.3",
     "@vue/compiler-sfc": "^3.0.5",
     "autoprefixer": "^10.4.12",
+    "gh-pages": "^4.0.0",
     "postcss": "^8.4.18",
     "sass": "^1.32.8",
     "tailwindcss": "^3.1.8"

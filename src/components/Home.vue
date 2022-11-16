@@ -5,8 +5,8 @@
   import { useStore } from 'vuex'
   import { useRouter } from 'vue-router';
   import api from '@/api'
-import bus from '@/utils/bus';
-import { IMenu } from '@/types/menu';
+  import bus from '@/utils/bus';
+  import { IMenu } from '@/types/menu';
 
   const store = useStore()
   const router = useRouter()
@@ -51,7 +51,14 @@ import { IMenu } from '@/types/menu';
   const getMenuList = async() => {
     try {
       const menuList = store.state.menuList
-      userMenu.value = menuList
+      if (menuList) {
+        userMenu.value = menuList
+      } else {
+        const { menuList, actionList } = await api.getPermissionList()
+        store.commit('saveMenuList', menuList)
+        store.commit('saveActionList', actionList)
+        userMenu.value = menuList
+      }
     } catch (error) {
       console.error(error);
     }
